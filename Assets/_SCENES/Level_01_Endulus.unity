@@ -688,11 +688,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 75e8be8fbbcc4514e9ffac6302d9f760, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
-  speed: 10
+  speed: 15
   laneSwitchSpeed: 10
   slideDuration: 1
-  jumpForce: 7
-  laneDistance: 2
+  jumpForce: 8
+  laneDistance: 2.5
 --- !u!136 &668001684
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -1418,7 +1418,7 @@ Transform:
   m_GameObject: {fileID: 1583384079}
   serializedVersion: 2
   m_LocalRotation: {x: 0.15715517, y: 0.00029151118, z: -0.00004882784, w: 0.98757386}
-  m_LocalPosition: {x: -0.052652907, y: 4.8443217, z: -6.708891}
+  m_LocalPosition: {x: -0.05, y: 4.2, z: -4.13}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
