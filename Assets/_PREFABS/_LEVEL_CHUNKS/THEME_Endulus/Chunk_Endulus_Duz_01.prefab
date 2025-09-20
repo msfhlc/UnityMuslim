@@ -255,7 +255,7 @@ GameObject:
   - component: {fileID: 529521660231595399}
   - component: {fileID: 7985326896006469447}
   - component: {fileID: 3866380979657636027}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Zemin
   m_TagString: Ground
   m_Icon: {fileID: 0}

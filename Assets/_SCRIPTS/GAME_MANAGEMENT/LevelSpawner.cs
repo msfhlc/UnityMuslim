@@ -1,76 +1,76 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq; // Bu satýrý listenin sonuna ekliyoruz, daha sonra kullanacaðýz.
 
 public class LevelSpawner : MonoBehaviour
 {
-    public List<GameObject> chunkPrefabs;
+    [Header("Chunk Prefabs")]
+    public List<GameObject> commonChunkPrefabs;
+    public List<GameObject> specialChunkPrefabs;
+
+    [Header("Generation Settings")]
+    public int chunksBetweenSpecial = 5;
+
     public Transform player;
-    public int poolSize = 7;
+    public int poolSizePerChunkType = 3; // Havuzda her bir chunk TÜRÜNDEN kaç tane olacaðýný belirler.
     public int numberOfStartingChunks = 3;
     public float spawnTriggerDistance = 75f;
 
     private List<GameObject> chunkPool = new List<GameObject>();
     private Vector3 nextSpawnPoint;
+    private int commonChunksSpawned = 0;
 
     void Start()
     {
         CreatePool();
         for (int i = 0; i < numberOfStartingChunks; i++)
         {
-            if (i == 0)
-                SpawnChunk(Vector3.zero);
-            else
-                SpawnChunk(nextSpawnPoint);
+            SpawnChunk(i == 0 ? Vector3.zero : nextSpawnPoint, false);
         }
     }
 
     void Update()
     {
+        // Player referansý atanmamýþsa bir þey yapma (hata vermesini engeller)
+        if (player == null) return;
+
         if (player.position.z > nextSpawnPoint.z - spawnTriggerDistance)
         {
-            SpawnChunk(nextSpawnPoint);
+            SpawnChunk(nextSpawnPoint, true);
             DeactivateOldestChunk();
         }
     }
 
+    // BU FONKSÝYONUN ÝÇÝNÝ DOLDURUYORUZ
     void CreatePool()
     {
-        for (int i = 0; i < poolSize; i++)
+        // Havuzu doldururken, HER BÝR sýradan chunk prefab'ýndan belirli sayýda oluþtur.
+        foreach (var prefab in commonChunkPrefabs)
         {
-            GameObject chunk = Instantiate(GetRandomChunkPrefab(), transform.position, Quaternion.identity);
-            chunk.SetActive(false);
-            chunkPool.Add(chunk);
-        }
-    }
-
-    GameObject GetChunkFromPool()
-    {
-        // 1. Kullanýlabilir (aktif olmayan) chunk'larý bulmak için geçici bir liste oluþtur.
-        List<GameObject> availableChunks = new List<GameObject>();
-        foreach (var chunk in chunkPool)
-        {
-            if (!chunk.activeInHierarchy)
+            for (int i = 0; i < poolSizePerChunkType; i++)
             {
-                availableChunks.Add(chunk);
+                GameObject chunk = Instantiate(prefab, transform.position, Quaternion.identity);
+                chunk.SetActive(false);
+                chunkPool.Add(chunk);
             }
         }
-
-        // 2. Eðer en az bir tane kullanýlabilir chunk varsa...
-        if (availableChunks.Count > 0)
+        // Ayný þekilde, HER BÝR özel chunk'tan da oluþtur.
+        foreach (var prefab in specialChunkPrefabs)
         {
-            // 3. O kullanýlabilir olanlarýn içinden rastgele bir tane seç.
-            int randomIndex = Random.Range(0, availableChunks.Count);
-            return availableChunks[randomIndex];
+            for (int i = 0; i < poolSizePerChunkType; i++)
+            {
+                GameObject chunk = Instantiate(prefab, transform.position, Quaternion.identity);
+                chunk.SetActive(false);
+                chunkPool.Add(chunk);
+            }
         }
-
-        // Hiç boþ chunk yoksa (çok nadir bir durum) null döndür.
-        return null;
     }
 
-    public void SpawnChunk(Vector3 spawnPosition)
+    public void SpawnChunk(Vector3 spawnPosition, bool canBeSpecial)
     {
-        GameObject newChunk = GetChunkFromPool();
+        GameObject prefabToUse = GetRandomChunkPrefab(canBeSpecial);
+        GameObject newChunk = GetChunkFromPool(prefabToUse);
+
         if (newChunk != null)
         {
             newChunk.transform.position = spawnPosition;
@@ -78,29 +78,74 @@ public class LevelSpawner : MonoBehaviour
             newChunk.SetActive(true);
             nextSpawnPoint = newChunk.transform.Find("CikisNoktasi").position;
         }
+        else
+        {
+            Debug.LogWarning("Havuzda " + prefabToUse.name + " tipinde uygun bir chunk bulunamadý!");
+        }
+    }
+
+    // BU FONKSÝYONUN ÝÇÝNÝ DOLDURUYORUZ
+    GameObject GetChunkFromPool(GameObject prefab)
+    {
+        // Havuzun içinde, istediðimiz prefab ile ayný isimde olan VE aktif olmayan ilk chunk'ý bul.
+        foreach (var chunk in chunkPool)
+        {
+            if (!chunk.activeInHierarchy && chunk.name == prefab.name + "(Clone)")
+            {
+                return chunk;
+            }
+        }
+
+        // Eðer havuzda hiç uygun chunk kalmamýþsa, hata vermemesi için anlýk olarak yeni bir tane oluþtur ve havuza ekle.
+        // Bu, sistemi daha saðlam yapar.
+        GameObject newChunk = Instantiate(prefab, transform.position, Quaternion.identity);
+        chunkPool.Add(newChunk);
+        return newChunk;
+    }
+
+    GameObject GetRandomChunkPrefab(bool canBeSpecial)
+    {
+        if (canBeSpecial && commonChunksSpawned >= chunksBetweenSpecial && specialChunkPrefabs.Count > 0)
+        {
+            commonChunksSpawned = 0;
+            return specialChunkPrefabs[Random.Range(0, specialChunkPrefabs.Count)];
+        }
+        else
+        {
+            if (commonChunkPrefabs.Count > 0)
+            {
+                commonChunksSpawned++;
+                return commonChunkPrefabs[Random.Range(0, commonChunkPrefabs.Count)];
+            }
+            return null; // Hiç sýradan chunk yoksa hata verme.
+        }
     }
 
     public void DeactivateOldestChunk()
     {
-        GameObject oldestChunk = null;
-        float oldestZ = float.MaxValue;
-        foreach (var chunk in chunkPool)
-        {
-            if (chunk.activeInHierarchy && chunk.transform.position.z < oldestZ)
-            {
-                oldestZ = chunk.transform.position.z;
-                oldestChunk = chunk;
-            }
-        }
+        // Linq kullanarak en eski (en düþük Z pozisyonuna sahip) aktif chunk'ý buluyoruz.
+        GameObject oldestChunk = activeChunks.OrderBy(c => c.transform.position.z).FirstOrDefault();
+
         if (oldestChunk != null)
         {
             oldestChunk.SetActive(false);
         }
     }
 
-    GameObject GetRandomChunkPrefab()
+    // YARDIMCI BÝR FONKSÝYON: Sadece aktif olan chunk'larý döndürür.
+    public List<GameObject> activeChunks
     {
-        int randomIndex = Random.Range(0, chunkPrefabs.Count);
-        return chunkPrefabs[randomIndex];
+        get
+        {
+            List<GameObject> aChunks = new List<GameObject>();
+            foreach (var chunk in chunkPool)
+            {
+                if (chunk.activeInHierarchy)
+                {
+                    aChunks.Add(chunk);
+                }
+            }
+            return aChunks;
+        }
     }
 }

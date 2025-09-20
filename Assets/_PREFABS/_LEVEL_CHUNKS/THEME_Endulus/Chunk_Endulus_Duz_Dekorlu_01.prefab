@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5688700723932423061}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: CikisNoktasi
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -40,7 +40,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4022906034284471840}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Chunk_Endulus_Duz_Dekorlu_01
   m_TagString: Ground
   m_Icon: {fileID: 0}
@@ -78,7 +78,7 @@ GameObject:
   - component: {fileID: 2158868372729397705}
   - component: {fileID: 3691268080196359399}
   - component: {fileID: 3543150874233946583}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Dekor_Tasi
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -186,7 +186,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4832738402385291521}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: GirisNoktasi
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -220,7 +220,7 @@ GameObject:
   - component: {fileID: 529521660231595399}
   - component: {fileID: 7985326896006469447}
   - component: {fileID: 3866380979657636027}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Zemin
   m_TagString: Untagged
   m_Icon: {fileID: 0}
